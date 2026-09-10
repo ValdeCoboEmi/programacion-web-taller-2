@@ -4,7 +4,7 @@
   "description": "API de cálculo de costos de envío internacional - Express puro",
   "main": "./src/index.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "node ./src/index.js",
     "dev": "node --watch server.js"
   },
   "dependencies": {
