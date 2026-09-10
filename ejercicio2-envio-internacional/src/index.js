@@ -47,12 +47,63 @@ function normalizarPais(pais) {
 
 //Validar datos
 function validarDatosEnvio({ pais, peso }) {
- 
+  if (!pais || typeof pais !== 'string' || pais.trim() === '') {
+    return { valido: false, error: 'Debe indicar un país de destino' };
+  }
+
+  if (peso === undefined || peso === null || peso === '') {
+    return { valido: false, error: 'Debe indicar el peso del paquete' };
+  }
+
+  const pesoNumerico = Number(peso); 
+
+  if (Number.isNaN(pesoNumerico)) {  
+    return { valido: false, error: 'El peso debe ser un número' };
+  }
+
+  if (pesoNumerico <= 0) {           
+    return { valido: false, error: 'El peso debe ser mayor a 0' };
+  }
+
+  const paisNormalizado = normalizarPais(pais);
+  if (!TARIFAS_POR_PAIS.hasOwnProperty(paisNormalizado)) {
+    return {
+      valido: false,
+      error: `País no soportado: ${pais}. Países disponibles: ${Object.values(NOMBRES_PAISES).join(', ')}`,
+    };
+  }
+
+  return { valido: true, paisNormalizado, peso: pesoNumerico };
 }
 
 //Calcula el costo de envío para un país y peso ya validados.
 function calcularCostoEnvio(paisNormalizado, peso) {
-  
+  const tarifaPorKg = TARIFAS_POR_PAIS[paisNormalizado];
+  let costo = peso * tarifaPorKg;
+
+  let descuentoAplicado = false;
+  let recargoAplicado = false;
+
+  // Descuento por envíos pesados
+  if (peso > PESO_LIMITE_DESCUENTO) {
+    costo = costo * (1 - PORCENTAJE_DESCUENTO);
+    descuentoAplicado = true;
+  }
+
+  // Recargo por envíos muy livianos
+  if (peso < PESO_LIMITE_RECARGO) {
+    costo = costo + RECARGO_FIJO;
+    recargoAplicado = true;
+  }
+
+  return {
+    pais: NOMBRES_PAISES[paisNormalizado],
+    peso,
+    tarifaPorKg,
+    descuentoAplicado,
+    recargoAplicado,
+    costoTotal: Number(costo.toFixed(2)),
+  };
 }
 
 // Rutas
@@ -61,6 +112,8 @@ app.post('/api/envio', (req, res) => {
     const { pais, peso } = req.body || {};
 
     const validacion = validarDatosEnvio({ pais, peso });
+    
+    
     if (!validacion.valido) {
       return res.status(400).json({ error: validacion.error });
     }
