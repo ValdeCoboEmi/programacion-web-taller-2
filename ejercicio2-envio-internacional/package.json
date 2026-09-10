@@ -1,0 +1,13 @@
+{
+  "name": "ejercicio2-envio-internacional",
+  "version": "1.0.0",
+  "description": "API de cálculo de costos de envío internacional - Express puro",
+  "main": "./src/index.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
